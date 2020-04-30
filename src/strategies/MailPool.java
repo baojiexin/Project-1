@@ -8,6 +8,7 @@ import automail.MailItem;
 import automail.Robot;
 import exceptions.BreakingFragileItemException;
 import exceptions.ItemTooHeavyException;
+import exceptions.NormalItemOnFragileArmException;
 
 public class MailPool implements IMailPool {
 
@@ -50,7 +51,7 @@ public class MailPool implements IMailPool {
 	}
 	
 	@Override
-	public void step() throws ItemTooHeavyException, BreakingFragileItemException {
+	public void step() throws ItemTooHeavyException, BreakingFragileItemException, NormalItemOnFragileArmException {
 		try{
 			ListIterator<Robot> i = robots.listIterator();
 			while (i.hasNext()) loadRobot(i);
@@ -59,25 +60,63 @@ public class MailPool implements IMailPool {
         } 
 	}
 	
-	private void loadRobot(ListIterator<Robot> i) throws ItemTooHeavyException, BreakingFragileItemException {
+	private void loadRobot(ListIterator<Robot> i) throws ItemTooHeavyException, BreakingFragileItemException, NormalItemOnFragileArmException {
 		Robot robot = i.next();
 		assert(robot.isEmpty());
-		// System.out.printf("P: %3d%n", pool.size());
+		System.out.printf("目前pool有多少个 " + "P: %3d%n", pool.size());
 		ListIterator<Item> j = pool.listIterator();
-		if (pool.size() > 0) {
-			try {
-			robot.addToHand(j.next().mailItem); // hand first as we want higher priority delivered first
-			j.remove();
+		if(RobotMode.isCautionOn()){
 			if (pool.size() > 0) {
-				robot.addToTube(j.next().mailItem);
-				j.remove();
+				try {
+					if(j.next().mailItem.isFragile()){
+						assert(robot.SpecialHandEmpty());
+						robot.addToFragile(j.next().mailItem);
+					}
+					else {
+						robot.addToHand(j.next().mailItem);
+					}
+					j.remove();
+					if (pool.size() > 0) {
+						if(!j.next().mailItem.isFragile()){
+							robot.addToTube(j.next().mailItem);
+						}
+						else {
+							assert (robot.SpecialHandEmpty());
+							robot.addToFragile(j.next().mailItem);
+						}
+						j.remove();
+						if(pool.size() > 0){
+							if(j.next().mailItem.isFragile()){
+								assert (robot.SpecialHandEmpty());
+								robot.addToFragile(j.next().mailItem);
+								j.remove();
+							}
+						}
+					}
+					robot.dispatch(); // send the robot off if it has any items to deliver
+					i.remove();       // remove from mailPool queue
+				} catch (Exception e) {
+					throw e;
+				}
 			}
-			robot.dispatch(); // send the robot off if it has any items to deliver
-			i.remove();       // remove from mailPool queue
-			} catch (Exception e) { 
-	            throw e; 
-	        } 
 		}
+		else {
+			if (pool.size() > 0) {
+				try {
+					robot.addToHand(j.next().mailItem); // hand first as we want higher priority delivered first
+					j.remove();
+					if (pool.size() > 0) {
+						robot.addToTube(j.next().mailItem);
+						j.remove();
+					}
+					robot.dispatch(); // send the robot off if it has any items to deliver
+					i.remove();       // remove from mailPool queue
+				} catch (Exception e) {
+					throw e;
+				}
+			}
+		}
+
 	}
 
 	@Override

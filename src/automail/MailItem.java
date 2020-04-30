@@ -55,6 +55,7 @@ public class MailItem {
     public String getId() {
         return id;
     }
+    public boolean isFragile(){return this.fragile;}
 
     /**
      *

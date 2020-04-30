@@ -1,12 +1,10 @@
 package automail;
 
-import exceptions.BreakingFragileItemException;
-import exceptions.ExcessiveDeliveryException;
-import exceptions.ItemTooHeavyException;
-import exceptions.MailAlreadyDeliveredException;
+import exceptions.*;
 import strategies.Automail;
 import strategies.IMailPool;
 import strategies.MailPool;
+import strategies.RobotMode;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -81,6 +79,7 @@ public class Simulation {
 		assert(robots > 0);
 		// MailPool
 		IMailPool mailPool = new MailPool(robots);
+		RobotMode.changeCaution(CAUTION_ENABLED);
 
 		// End properties
 		
@@ -107,22 +106,33 @@ public class Simulation {
         
         /** Initiate all the mail */
         mailGenerator.generateAllMail(FRAGILE_ENABLED);
-        while(MAIL_DELIVERED.size() != mailGenerator.MAIL_TO_CREATE) {
-            mailGenerator.step();
-            try {
-                automail.mailPool.step();//add items to robots
-				for (int i=0; i<robots; i++) {
-					automail.robots[i].step(); // change robots status
+		if (!RobotMode.isCautionOn()) {
+			while(MAIL_DELIVERED.size() != mailGenerator.MAIL_TO_CREATE) {
+				mailGenerator.step();
+				try {
+					automail.mailPool.step();//add items to robots
+					for (int i=0; i<robots; i++) {
+						automail.robots[i].step(); // change robots status
+						System.out.println("11111");
+					}
+				} catch (ExcessiveDeliveryException | ItemTooHeavyException | BreakingFragileItemException | NormalItemOnFragileArmException e) {
+					e.printStackTrace();
+					System.out.println("Simulation unable to complete.");
+					System.exit(0);
 				}
-			} catch (ExcessiveDeliveryException|ItemTooHeavyException|BreakingFragileItemException e) {
-				e.printStackTrace();
-				System.out.println("Simulation unable to complete.");
-				System.exit(0);
+				Clock.Tick(); // to Make the time pass begin at 0
+				System.out.println("Now the time is :" + Clock.Time());
 			}
-            Clock.Tick(); // to Make the time pass begin at 0
-        }
+		}
+		else {
+			while(MAIL_DELIVERED.size() != mailGenerator.MAIL_TO_CREATE) {
+				mailGenerator.step();
+			}
+		}
+
         printResults();
     }
+
     
     static class ReportDelivery implements IMailDelivery {
     	
@@ -157,4 +167,5 @@ public class Simulation {
         System.out.println("Final Delivery time: "+Clock.Time());
         System.out.printf("Final Score: %.2f%n", total_score);
     }
+
 }

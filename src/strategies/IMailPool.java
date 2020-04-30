@@ -4,6 +4,7 @@ import automail.MailItem;
 import automail.Robot;
 import exceptions.BreakingFragileItemException;
 import exceptions.ItemTooHeavyException;
+import exceptions.NormalItemOnFragileArmException;
 
 /**
  * addToPool is called when there are mail items newly arrived at the building to add to the MailPool or
@@ -22,7 +23,7 @@ public interface IMailPool {
     /**
      * load up any waiting robots with mailItems, if any.
      */
-	void step() throws ItemTooHeavyException, BreakingFragileItemException;
+	void step() throws ItemTooHeavyException, BreakingFragileItemException, NormalItemOnFragileArmException;
 
 	/**
      * @param robot refers to a robot which has arrived back ready for more mailItems to deliver

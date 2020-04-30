@@ -93,7 +93,7 @@ public class MailGenerator {
      */
     public void generateAllMail(boolean generateFragile){
         while(!complete){
-            MailItem newMail =  generateMail(generateFragile);
+            MailItem newMail =  generateMail(generateFragile);//随机的物品时间
             int timeToDeliver = newMail.getArrivalTime();
             /** Check if key exists for this time **/
             if(allMail.containsKey(timeToDeliver)){
@@ -124,7 +124,8 @@ public class MailGenerator {
      */
     public void step(){
     	// Check if there are any mail to create
-        if(this.allMail.containsKey(Clock.Time())){
+        if(this.allMail.containsKey(Clock.Time())){//当 当前时间与邮件模拟发送时间相同时，将邮件加入池子
+            System.out.println("有了，数量为 " + allMail.get(Clock.Time()).size()+ " 个邮件");
             for(MailItem mailItem : allMail.get(Clock.Time())){
                 System.out.printf("T: %3d > + addToPool [%s]%n", Clock.Time(), mailItem.toString());
                 mailPool.addToPool(mailItem);

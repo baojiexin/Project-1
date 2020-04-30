@@ -18,17 +18,19 @@ public class Robot {
     IMailDelivery delivery;
     protected final String id;
     /** Possible states the robot can be in */
-    public enum RobotState { DELIVERING, WAITING, RETURNING }
+    public enum RobotState { DELIVERING, WAITING, RETURNING, WRAPPING, UNWRAPPING }
     public RobotState current_state;
     private int current_floor;
     private int destination_floor;
     private IMailPool mailPool;
     private boolean receivedDispatch;
-    
+
     private MailItem deliveryItem = null;
     private MailItem tube = null;
     private MailItem fragileItem = null;/** The fragile item on the special arm*/
     private int deliveryCounter;
+
+
 
 
     /**
@@ -48,7 +50,8 @@ public class Robot {
         this.receivedDispatch = false;
         this.deliveryCounter = 0;
     }
-    
+
+
     public void dispatch() {
     	receivedDispatch = true;
     }
@@ -132,7 +135,7 @@ public class Robot {
             current_floor--;
         }
     }
-    
+    public String getId(){return this.id;}
     private String getIdTube() {
     	return String.format("%s(%1d)", id, (tube == null ? 0 : 1));
     }
@@ -190,5 +193,13 @@ public class Robot {
         fragileItem = mailItem;
         if (tube.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();
     }
+
+    public boolean SpecialHandEmpty(){
+        if(this.fragileItem == null){
+            return true;
+        }
+        else return false;
+    }
+
 
 }
