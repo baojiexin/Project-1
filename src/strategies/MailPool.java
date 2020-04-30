@@ -134,6 +134,7 @@ public class MailPool implements IMailPool {
 				}
 			}
 		}
+		robot.updateDeliveryItem();
 
 	}
 

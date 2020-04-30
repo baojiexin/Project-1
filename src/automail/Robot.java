@@ -99,13 +99,12 @@ public class Robot implements IMailHandling{
                     	throw new ExcessiveDeliveryException();
                     }
                     /** Check if want to return, i.e. if there is no item in the tube*/
-                    if(tube == null){
+                    if(tube == null && fragileItem == null && normalItem == null){
                     	changeState(RobotState.RETURNING);
                     }
                     else{
                         /** If there is another item, set the robot's route to the location to deliver the item */
-                        deliveryItem = tube;
-                        tube = null;
+                        updateDeliveryItem();
                         setRoute();
                         changeState(RobotState.DELIVERING);
                     }
@@ -174,7 +173,25 @@ public class Robot implements IMailHandling{
 		return (deliveryItem == null && tube == null);
 	}
 
-	public void addToHand(MailItem mailItem) throws ItemTooHeavyException, BreakingFragileItemException {
+    public void addDeliveryItem(MailItem mailItem){
+        this.deliveryItem = mailItem;
+    }
+    public void updateDeliveryItem(){
+	    assert (deliveryItem ==null);
+	    if(fragileItem != null){
+	        deliveryItem = fragileItem;
+        }
+	    else if(normalItem != null){
+	        deliveryItem = normalItem;
+	        normalItem = null;
+	        if(tube != null){
+	            normalItem = tube;
+	            tube = null;
+            }
+        }
+    }
+
+    public void addToHand(MailItem mailItem) throws ItemTooHeavyException, BreakingFragileItemException {
 		assert(normalItem == null);
 		if(mailItem.fragile) throw new BreakingFragileItemException();
         normalItem = mailItem;
@@ -195,6 +212,12 @@ public class Robot implements IMailHandling{
         if (tube.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();
     }
 
+    public boolean tubeEmpty(){
+        if(this.tube == null){
+            return true;
+        }
+        else return false;
+    }
     public boolean specialHandEmpty(){
         if(this.fragileItem == null){
             return true;
@@ -207,12 +230,7 @@ public class Robot implements IMailHandling{
         }
         else return false;
     }
-    public boolean tubeEmpty(){
-        if(this.tube == null){
-            return true;
-        }
-        else return false;
-    }
+
 
     @Override
     public void wrap() {
