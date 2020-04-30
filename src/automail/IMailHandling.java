@@ -7,9 +7,9 @@ public interface IMailHandling {
     /**
      * Wrap items
      */
-    public void wrap(MailItem mailItem);
+    public void wrap();
     /**
      * Unwrap items
      */
-    public void unwrap(MailItem mailItem);
+    public void unwrap();
 }

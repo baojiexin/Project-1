@@ -11,7 +11,7 @@ import java.util.TreeMap;
 /**
  * The robot delivers mail!
  */
-public class Robot {
+public class Robot implements IMailHandling{
 	
     static public final int INDIVIDUAL_MAX_WEIGHT = 2000;
 
@@ -28,6 +28,7 @@ public class Robot {
     private MailItem deliveryItem = null;
     private MailItem tube = null;
     private MailItem fragileItem = null;/** The fragile item on the special arm*/
+    private MailItem normalItem = null;
     private int deliveryCounter;
 
 
@@ -174,10 +175,10 @@ public class Robot {
 	}
 
 	public void addToHand(MailItem mailItem) throws ItemTooHeavyException, BreakingFragileItemException {
-		assert(deliveryItem == null);
+		assert(normalItem == null);
 		if(mailItem.fragile) throw new BreakingFragileItemException();
-		deliveryItem = mailItem;
-		if (deliveryItem.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();
+        normalItem = mailItem;
+		if (normalItem.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();
 	}
 
 	public void addToTube(MailItem mailItem) throws ItemTooHeavyException, BreakingFragileItemException {
@@ -194,12 +195,31 @@ public class Robot {
         if (tube.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();
     }
 
-    public boolean SpecialHandEmpty(){
+    public boolean specialHandEmpty(){
         if(this.fragileItem == null){
             return true;
         }
         else return false;
     }
+    public boolean normalHandEmpty(){
+        if(this.normalItem == null){
+            return true;
+        }
+        else return false;
+    }
+    public boolean tubeEmpty(){
+        if(this.tube == null){
+            return true;
+        }
+        else return false;
+    }
 
-
+    @Override
+    public void wrap() {
+        Clock.Tick();
+        Clock.Tick();
+    }
+    public void unwrap(){
+        Clock.Tick();
+    }
 }

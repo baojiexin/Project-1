@@ -66,11 +66,15 @@ public class MailPool implements IMailPool {
 		System.out.printf("目前pool有多少个 " + "P: %3d%n", pool.size());
 		ListIterator<Item> j = pool.listIterator();
 		if(RobotMode.isCautionOn()){
+			/**
+			 * Load a robot in caution mode
+			 */
 			if (pool.size() > 0) {
 				try {
 					if(j.next().mailItem.isFragile()){
-						assert(robot.SpecialHandEmpty());
+						assert(robot.specialHandEmpty());
 						robot.addToFragile(j.next().mailItem);
+						robot.wrap();
 					}
 					else {
 						robot.addToHand(j.next().mailItem);
@@ -78,17 +82,28 @@ public class MailPool implements IMailPool {
 					j.remove();
 					if (pool.size() > 0) {
 						if(!j.next().mailItem.isFragile()){
-							robot.addToTube(j.next().mailItem);
+							if(robot.normalHandEmpty()){
+								robot.addToHand(j.next().mailItem);
+							}
+							else {
+								robot.addToTube(j.next().mailItem);
+							}
+
 						}
 						else {
-							assert (robot.SpecialHandEmpty());
+							assert (robot.specialHandEmpty());
 							robot.addToFragile(j.next().mailItem);
+							robot.wrap();
 						}
 						j.remove();
 						if(pool.size() > 0){
 							if(j.next().mailItem.isFragile()){
-								assert (robot.SpecialHandEmpty());
+								assert (robot.specialHandEmpty());
 								robot.addToFragile(j.next().mailItem);
+								j.remove();
+							}
+							else if(robot.tubeEmpty()){
+								robot.addToTube(j.next().mailItem);
 								j.remove();
 							}
 						}
@@ -100,6 +115,9 @@ public class MailPool implements IMailPool {
 				}
 			}
 		}
+		/**
+		 * Load a robot in a normal mode
+		 */
 		else {
 			if (pool.size() > 0) {
 				try {
