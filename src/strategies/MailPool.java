@@ -71,39 +71,42 @@ public class MailPool implements IMailPool {
 			 */
 			if (pool.size() > 0) {
 				try {
-					if(j.next().mailItem.isFragile()){
+					MailItem currentItem = j.next().mailItem;
+					if(currentItem.isFragile()){
 						assert(robot.specialHandEmpty());
-						robot.addToFragile(j.next().mailItem);
+						robot.addToFragile(currentItem);
 						robot.wrap();
 					}
 					else {
-						robot.addToHand(j.next().mailItem);
+						robot.addToHand(currentItem);
 					}
 					j.remove();
 					if (pool.size() > 0) {
-						if(!j.next().mailItem.isFragile()){
+						currentItem = j.next().mailItem;
+						if(!currentItem.isFragile()){
 							if(robot.normalHandEmpty()){
-								robot.addToHand(j.next().mailItem);
+								robot.addToHand(currentItem);
 							}
 							else {
-								robot.addToTube(j.next().mailItem);
+								robot.addToTube(currentItem);
 							}
 
 						}
 						else {
 							assert (robot.specialHandEmpty());
-							robot.addToFragile(j.next().mailItem);
+							robot.addToFragile(currentItem);
 							robot.wrap();
 						}
 						j.remove();
 						if(pool.size() > 0){
-							if(j.next().mailItem.isFragile()){
+							currentItem = j.next().mailItem;
+							if(currentItem.isFragile()){
 								assert (robot.specialHandEmpty());
-								robot.addToFragile(j.next().mailItem);
+								robot.addToFragile(currentItem);
 								j.remove();
 							}
 							else if(robot.tubeEmpty()){
-								robot.addToTube(j.next().mailItem);
+								robot.addToTube(currentItem);
 								j.remove();
 							}
 						}

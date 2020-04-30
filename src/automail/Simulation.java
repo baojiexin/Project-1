@@ -106,28 +106,21 @@ public class Simulation {
         
         /** Initiate all the mail */
         mailGenerator.generateAllMail(FRAGILE_ENABLED);
-		if (!RobotMode.isCautionOn()) {
-			while(MAIL_DELIVERED.size() != mailGenerator.MAIL_TO_CREATE) {
-				mailGenerator.step();
-				try {
-					automail.mailPool.step();//add items to robots
-					for (int i=0; i<robots; i++) {
-						automail.robots[i].step(); // change robots status
-						System.out.println("11111");
-					}
-				} catch (ExcessiveDeliveryException | ItemTooHeavyException | BreakingFragileItemException | NormalItemOnFragileArmException e) {
-					e.printStackTrace();
-					System.out.println("Simulation unable to complete.");
-					System.exit(0);
+		while(MAIL_DELIVERED.size() != mailGenerator.MAIL_TO_CREATE) {
+			mailGenerator.step();
+			try {
+				automail.mailPool.step();//add items to robots
+				for (int i=0; i<robots; i++) {
+					automail.robots[i].step(); // change robots status
+					System.out.println("11111");
 				}
-				Clock.Tick(); // to Make the time pass begin at 0
-				System.out.println("Now the time is :" + Clock.Time());
+			} catch (ExcessiveDeliveryException | ItemTooHeavyException | BreakingFragileItemException | NormalItemOnFragileArmException e) {
+				e.printStackTrace();
+				System.out.println("Simulation unable to complete.");
+				System.exit(0);
 			}
-		}
-		else {
-			while(MAIL_DELIVERED.size() != mailGenerator.MAIL_TO_CREATE) {
-				mailGenerator.step();
-			}
+			Clock.Tick(); // to Make the time pass begin at 0
+			System.out.println("Now the time is :" + Clock.Time());
 		}
 
         printResults();
@@ -146,6 +139,7 @@ public class Simulation {
     		}
     		else{
     			try {
+					System.out.println("Mail id " + deliveryItem.id);
     				throw new MailAlreadyDeliveredException();
     			} catch (MailAlreadyDeliveredException e) {
     				e.printStackTrace();

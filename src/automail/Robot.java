@@ -5,6 +5,8 @@ import exceptions.ExcessiveDeliveryException;
 import exceptions.ItemTooHeavyException;
 import exceptions.NormalItemOnFragileArmException;
 import strategies.IMailPool;
+import strategies.RobotMode;
+
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -95,9 +97,17 @@ public class Robot implements IMailHandling{
                     delivery.deliver(deliveryItem);
                     deliveryItem = null;
                     deliveryCounter++;
-                    if(deliveryCounter > 2){  // Implies a simulation bug
-                    	throw new ExcessiveDeliveryException();
+                    if(RobotMode.isCautionOn()){
+                        if(deliveryCounter > 3){  // Implies a simulation bug
+                            throw new ExcessiveDeliveryException();
+                        }
                     }
+                    else {
+                        if(deliveryCounter > 2){  // Implies a simulation bug
+                            throw new ExcessiveDeliveryException();
+                        }
+                    }
+
                     /** Check if want to return, i.e. if there is no item in the tube*/
                     if(tube == null && fragileItem == null && normalItem == null){
                     	changeState(RobotState.RETURNING);
@@ -180,6 +190,7 @@ public class Robot implements IMailHandling{
 	    assert (deliveryItem ==null);
 	    if(fragileItem != null){
 	        deliveryItem = fragileItem;
+	        fragileItem = null;
         }
 	    else if(normalItem != null){
 	        deliveryItem = normalItem;
@@ -209,7 +220,7 @@ public class Robot implements IMailHandling{
         assert(fragileItem == null);
         if(!mailItem.fragile) throw new NormalItemOnFragileArmException();
         fragileItem = mailItem;
-        if (tube.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();
+        if (fragileItem.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();
     }
 
     public boolean tubeEmpty(){
