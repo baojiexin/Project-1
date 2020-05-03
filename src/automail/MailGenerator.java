@@ -21,6 +21,9 @@ public class MailGenerator {
     private IMailPool mailPool;
 
     private Map<Integer,ArrayList<MailItem>> allMail;
+    private int mailAdded = 0;
+    private int curMailSize = 0;
+
 
     /**
      * Constructor for mail generation
@@ -94,6 +97,7 @@ public class MailGenerator {
     public void generateAllMail(boolean generateFragile){
         while(!complete){
             MailItem newMail =  generateMail(generateFragile);//随机的物品时间
+            System.out.println(newMail);
             int timeToDeliver = newMail.getArrivalTime();
             /** Check if key exists for this time **/
             if(allMail.containsKey(timeToDeliver)){
@@ -125,12 +129,17 @@ public class MailGenerator {
     public void step(){
     	// Check if there are any mail to create
         if(this.allMail.containsKey(Clock.Time())){//当 当前时间与邮件模拟发送时间相同时，将邮件加入池子
-            System.out.println("有了，数量为 " + allMail.get(Clock.Time()).size()+ " 个邮件");
+            //System.out.println("有了，数量为 " + allMail.get(Clock.Time()).size()+ " 个邮件");
+
             for(MailItem mailItem : allMail.get(Clock.Time())){
                 System.out.printf("T: %3d > + addToPool [%s]%n", Clock.Time(), mailItem.toString());
+                curMailSize = allMail.get((Clock.Time())).size();
+                mailAdded++;
                 mailPool.addToPool(mailItem);
             }
+
         }
+        System.out.println("目前邮件共: " + mailAdded);
     }
     
 }

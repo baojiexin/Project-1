@@ -8,6 +8,7 @@ import strategies.RobotMode;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
@@ -107,12 +108,14 @@ public class Simulation {
         /** Initiate all the mail */
         mailGenerator.generateAllMail(FRAGILE_ENABLED);
 		while(MAIL_DELIVERED.size() != mailGenerator.MAIL_TO_CREATE) {
+			//System.out.println("Delivered size " + MAIL_DELIVERED.size());
+			//System.out.println("目标size " + mailGenerator.MAIL_TO_CREATE);
 			mailGenerator.step();
 			try {
 				automail.mailPool.step();//add items to robots
 				for (int i=0; i<robots; i++) {
 					automail.robots[i].step(); // change robots status
-					System.out.println("11111");
+					//System.out.println("11111");
 				}
 			} catch (ExcessiveDeliveryException | ItemTooHeavyException | BreakingFragileItemException | NormalItemOnFragileArmException e) {
 				e.printStackTrace();
@@ -120,7 +123,7 @@ public class Simulation {
 				System.exit(0);
 			}
 			Clock.Tick(); // to Make the time pass begin at 0
-			System.out.println("Now the time is :" + Clock.Time());
+			//System.out.println("Now the time is :" + Clock.Time());
 		}
 
         printResults();
@@ -133,6 +136,7 @@ public class Simulation {
     	public void deliver(MailItem deliveryItem){
     		if(!MAIL_DELIVERED.contains(deliveryItem)){
     			MAIL_DELIVERED.add(deliveryItem);
+
                 System.out.printf("T: %3d > Deliv(%4d) [%s]%n", Clock.Time(), MAIL_DELIVERED.size(), deliveryItem.toString());
     			// Calculate delivery score
     			total_score += calculateDeliveryScore(deliveryItem);

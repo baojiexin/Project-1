@@ -59,7 +59,12 @@ public class MailPool implements IMailPool {
             throw e; 
         } 
 	}
-	
+	private boolean robotReady(Robot robot){
+		if(!robot.normalHandEmpty() && !robot.specialHandEmpty() && !robot.tubeEmpty()){
+			return true;
+		}
+		else return false;
+	}
 	private void loadRobot(ListIterator<Robot> i) throws ItemTooHeavyException, BreakingFragileItemException, NormalItemOnFragileArmException {
 		Robot robot = i.next();
 		assert(robot.isEmpty());
@@ -69,54 +74,90 @@ public class MailPool implements IMailPool {
 			/**
 			 * Load a robot in caution mode
 			 */
-			if (pool.size() > 0) {
-				try {
-					MailItem currentItem = j.next().mailItem;
-					if(currentItem.isFragile()){
-						assert(robot.specialHandEmpty());
-						robot.addToFragile(currentItem);
-						robot.wrap();
-					}
-					else {
-						robot.addToHand(currentItem);
-					}
-					j.remove();
-					if (pool.size() > 0) {
-						currentItem = j.next().mailItem;
-						if(!currentItem.isFragile()){
-							if(robot.normalHandEmpty()){
-								robot.addToHand(currentItem);
-							}
-							else {
-								robot.addToTube(currentItem);
-							}
 
-						}
-						else {
-							assert (robot.specialHandEmpty());
-							robot.addToFragile(currentItem);
-							robot.wrap();
-						}
-						j.remove();
-						if(pool.size() > 0){
-							currentItem = j.next().mailItem;
-							if(currentItem.isFragile()){
-								assert (robot.specialHandEmpty());
-								robot.addToFragile(currentItem);
-								j.remove();
-							}
-							else if(robot.tubeEmpty()){
-								robot.addToTube(currentItem);
-								j.remove();
-							}
-						}
+			LinkedList<Item> tempList = new LinkedList<>();
+			while (pool.size() > 0 && !robotReady(robot)){
+				Item currentItem = pool.pollFirst();
+				if(robot.specialHandEmpty()){
+					if(currentItem.mailItem.isFragile()){
+						robot.addToFragile(currentItem.mailItem);
+
+						continue;
 					}
-					robot.dispatch(); // send the robot off if it has any items to deliver
-					i.remove();       // remove from mailPool queue
-				} catch (Exception e) {
-					throw e;
 				}
+				else if(!robot.specialHandEmpty() && currentItem.mailItem.isFragile()){
+					tempList.add(currentItem);
+					continue;
+				}
+				if(robot.normalHandEmpty()){
+					if(!currentItem.mailItem.isFragile()){
+						robot.addToHand(currentItem.mailItem);
+						continue;
+					}
+				}
+				if(robot.tubeEmpty() && (!robot.normalHandEmpty())){
+					if(!currentItem.mailItem.isFragile()){
+						robot.addToTube(currentItem.mailItem);
+						continue;
+					}
+				}
+				tempList.add(currentItem);
+
 			}
+			pool.addAll(tempList);
+			tempList = new LinkedList<>();
+			if(!(robot.specialHandEmpty() && robot.normalHandEmpty())){
+				robot.dispatch();
+				i.remove();
+			}
+//			if (pool.size() > 0) {
+//				try {
+//					MailItem currentItem = j.next().mailItem;
+//					if(currentItem.isFragile()){
+//						assert(robot.specialHandEmpty());
+//						robot.addToFragile(currentItem);
+//
+//					}
+//					else {
+//						robot.addToHand(currentItem);
+//					}
+//					j.remove();
+//					if (pool.size() > 0) {
+//						currentItem = j.next().mailItem;
+//						if(!currentItem.isFragile()){
+//							if(robot.normalHandEmpty()){
+//								robot.addToHand(currentItem);
+//							}
+//							else {
+//								robot.addToTube(currentItem);
+//							}
+//
+//						}
+//						else {
+//							if (robot.specialHandEmpty()){
+//								robot.addToFragile(currentItem);
+//							}
+//						}
+//						j.remove();
+//						if(pool.size() > 0){
+//							currentItem = j.next().mailItem;
+//							if(currentItem.isFragile()){
+//								assert (robot.specialHandEmpty());
+//								robot.addToFragile(currentItem);
+//								j.remove();
+//							}
+//							else if(robot.tubeEmpty()){
+//								robot.addToTube(currentItem);
+//								j.remove();
+//							}
+//						}
+//					}
+//					robot.dispatch(); // send the robot off if it has any items to deliver
+//					i.remove();       // remove from mailPool queue
+//				} catch (Exception e) {
+//					throw e;
+//				}
+//			}
 		}
 		/**
 		 * Load a robot in a normal mode

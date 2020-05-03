@@ -94,10 +94,14 @@ public class Robot implements IMailHandling{
     		case DELIVERING:
     			if(current_floor == destination_floor){ // If already here drop off either way
                     /** Delivery complete, report this to the simulator! */
+                    if(deliveryItem.isFragile()){
+
+                    }
                     delivery.deliver(deliveryItem);
                     deliveryItem = null;
                     deliveryCounter++;
                     if(RobotMode.isCautionOn()){
+
                         if(deliveryCounter > 3){  // Implies a simulation bug
                             throw new ExcessiveDeliveryException();
                         }
@@ -107,6 +111,7 @@ public class Robot implements IMailHandling{
                             throw new ExcessiveDeliveryException();
                         }
                     }
+
 
                     /** Check if want to return, i.e. if there is no item in the tube*/
                     if(tube == null && fragileItem == null && normalItem == null){
@@ -131,6 +136,8 @@ public class Robot implements IMailHandling{
      */
     private void setRoute() {
         /** Set the destination floor */
+        //System.out.println("Tube空吗: " + tubeEmpty() + " Normal空吗: " + normalHandEmpty() + " Fragile空吗: " + specialHandEmpty());
+        System.out.println("发送物品的ID是 ：" + deliveryItem.id + "是否为脆弱： " + deliveryItem.fragile);
         destination_floor = deliveryItem.getDestFloor();
     }
 
@@ -188,13 +195,25 @@ public class Robot implements IMailHandling{
     }
     public void updateDeliveryItem(){
 	    assert (deliveryItem ==null);
-	    if(fragileItem != null){
+	    if(normalItem !=null && fragileItem != null){
+            if(Math.abs(normalItem.destination_floor - current_floor) >=Math.abs(fragileItem.destination_floor - current_floor)){
+                deliveryItem = normalItem;
+                normalItem = null;
+            }
+            else {
+                deliveryItem = fragileItem;
+                fragileItem = null;
+            }
+        }
+	    else if(normalItem == null && fragileItem !=null){
 	        deliveryItem = fragileItem;
 	        fragileItem = null;
         }
-	    else if(normalItem != null){
+	    else if(normalItem != null && fragileItem == null){
 	        deliveryItem = normalItem;
 	        normalItem = null;
+        }
+	    if(normalItem == null){
 	        if(tube != null){
 	            normalItem = tube;
 	            tube = null;
@@ -250,5 +269,14 @@ public class Robot implements IMailHandling{
     }
     public void unwrap(){
         Clock.Tick();
+    }
+
+    public MailItem getClosestItem(MailItem item_1, MailItem item_2){
+
+        if(Math.abs(item_1.destination_floor - current_floor) >=
+                Math.abs(item_2.destination_floor - current_floor)){
+            return item_1;
+        }
+        else return item_2;
     }
 }
