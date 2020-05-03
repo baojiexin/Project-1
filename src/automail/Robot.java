@@ -33,6 +33,8 @@ public class Robot implements IMailHandling{
     private MailItem normalItem = null;
     private int deliveryCounter;
 
+    private int wrapTime = 0;
+    private int unwrapTime = 0;
 
 
 
@@ -85,44 +87,88 @@ public class Robot implements IMailHandling{
     		case WAITING:
                 /** If the StorageTube is ready and the Robot is waiting in the mailroom then start the delivery */
                 if(!isEmpty() && receivedDispatch){
-                	receivedDispatch = false;
-                	deliveryCounter = 0; // reset delivery counter
-        			setRoute();
-                	changeState(RobotState.DELIVERING);
+                    if(deliveryItem.isFragile()){
+                        if(wrapTime >= 2){
+                            receivedDispatch = false;
+                            deliveryCounter = 0; // reset delivery counter
+                            setRoute();
+                            wrapTime = 0;
+                            changeState(RobotState.DELIVERING);
+                        }
+                        else {
+                            wrap();
+                            System.out.println(this.id + " is wrapping fragile item: " + deliveryItem.toString());
+                        }
+
+                    }
+                    else {
+                        receivedDispatch = false;
+                        deliveryCounter = 0; // reset delivery counter
+                        setRoute();
+                        changeState(RobotState.DELIVERING);
+                    }
+
                 }
                 break;
     		case DELIVERING:
     			if(current_floor == destination_floor){ // If already here drop off either way
                     /** Delivery complete, report this to the simulator! */
                     if(deliveryItem.isFragile()){
-
-                    }
-                    delivery.deliver(deliveryItem);
-                    deliveryItem = null;
-                    deliveryCounter++;
-                    if(RobotMode.isCautionOn()){
-
-                        if(deliveryCounter > 3){  // Implies a simulation bug
-                            throw new ExcessiveDeliveryException();
+                        assert (RobotMode.isCautionOn());
+                        if(unwrapTime >= 1){
+                            delivery.deliver(deliveryItem);
+                            deliveryItem = null;
+                            unwrapTime = 0;
+                            deliveryCounter++;
+                            if(deliveryCounter > 3){  // Implies a simulation bug
+                                throw new ExcessiveDeliveryException();
+                            }
+                            /** Check if want to return, i.e. if there is no item in the tube*/
+                            if(tube == null && fragileItem == null && normalItem == null){
+                                changeState(RobotState.RETURNING);
+                            }
+                            else{
+                                /** If there is another item, set the robot's route to the location to deliver the item */
+                                updateDeliveryItem();
+                                setRoute();
+                                changeState(RobotState.DELIVERING);
+                            }
+                        }
+                        else {
+                            unwrap();
+                            System.out.println(this.id + " is unwrapping fragile item: " + deliveryItem.toString());
                         }
                     }
                     else {
-                        if(deliveryCounter > 2){  // Implies a simulation bug
-                            throw new ExcessiveDeliveryException();
+                        delivery.deliver(deliveryItem);
+                        deliveryItem = null;
+                        deliveryCounter++;
+                        if(RobotMode.isCautionOn()){
+
+                            if(deliveryCounter > 3){  // Implies a simulation bug
+                                throw new ExcessiveDeliveryException();
+                            }
+                        }
+                        else {
+                            if(deliveryCounter > 2){  // Implies a simulation bug
+                                throw new ExcessiveDeliveryException();
+                            }
+                        }
+
+                        /** Check if want to return, i.e. if there is no item in the tube*/
+                        if(tube == null && fragileItem == null && normalItem == null){
+                            changeState(RobotState.RETURNING);
+                        }
+                        else{
+                            /** If there is another item, set the robot's route to the location to deliver the item */
+                            updateDeliveryItem();
+                            setRoute();
+                            changeState(RobotState.DELIVERING);
                         }
                     }
 
 
-                    /** Check if want to return, i.e. if there is no item in the tube*/
-                    if(tube == null && fragileItem == null && normalItem == null){
-                    	changeState(RobotState.RETURNING);
-                    }
-                    else{
-                        /** If there is another item, set the robot's route to the location to deliver the item */
-                        updateDeliveryItem();
-                        setRoute();
-                        changeState(RobotState.DELIVERING);
-                    }
+
     			} else {
 	        		/** The robot is not at the destination yet, move towards it! */
 	                moveTowards(destination_floor);
@@ -264,11 +310,11 @@ public class Robot implements IMailHandling{
 
     @Override
     public void wrap() {
-        Clock.Tick();
-        Clock.Tick();
+        wrapTime++;
+
     }
     public void unwrap(){
-        Clock.Tick();
+        unwrapTime++;
     }
 
     public MailItem getClosestItem(MailItem item_1, MailItem item_2){
