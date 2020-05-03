@@ -133,9 +133,12 @@ public class Robot implements IMailHandling{
                                 setRoute();
                                 changeState(RobotState.DELIVERING);
                             }
+                            Building.releaseFloor(current_floor);
+                            System.out.println(this.id + "released floor " + current_floor);
                         }
                         else {
                             unwrap();
+                            Building.lockFloor(current_floor);
                             System.out.println(this.id + " is unwrapping fragile item: " + deliveryItem.toString());
                         }
                     }
@@ -193,11 +196,22 @@ public class Robot implements IMailHandling{
      */
     private void moveTowards(int destination) {
         if(current_floor < destination){
-            current_floor++;
+            if(!Building.isFloorLocked(current_floor + 1)){
+                current_floor++;
+            }
+            else {
+                System.out.println(this.id + " is Waiting for Floor " + (current_floor + 1) + " to be released");
+            }
         } else {
-            current_floor--;
+            if(!Building.isFloorLocked(current_floor - 1)){
+                current_floor--;
+            }
+            else {
+                System.out.println(this.id + " is Waiting for Floor " + (current_floor - 1) + " to be released");
+            }
         }
     }
+
     public String getId(){return this.id;}
     private String getIdTube() {
     	return String.format("%s(%1d)", id, (tube == null ? 0 : 1));

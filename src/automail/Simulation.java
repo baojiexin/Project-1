@@ -101,6 +101,7 @@ public class Simulation {
         }
         Integer seed = seedMap.get(true);
         System.out.println("Seed: " + (seed == null ? "null" : seed.toString()));
+        Building.initialFloorStatus(Building.FLOORS);
 
         Automail automail = new Automail(mailPool, new ReportDelivery(), robots);
         MailGenerator mailGenerator = new MailGenerator(MAIL_TO_CREATE, MAIL_MAX_WEIGHT, automail.mailPool, seedMap);
