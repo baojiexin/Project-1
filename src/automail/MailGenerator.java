@@ -139,7 +139,7 @@ public class MailGenerator {
             }
 
         }
-        System.out.println("目前邮件共: " + mailAdded);
+        //System.out.println("目前邮件共: " + mailAdded);
     }
     
 }

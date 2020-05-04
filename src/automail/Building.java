@@ -14,6 +14,7 @@ public class Building {
     /** Represents the mailroom location */
     public static final int MAILROOM_LOCATION = 1;
 
+    /** New: A map used to store status of floors(true = locked, false = unlocked)*/
     private static HashMap<Integer,Boolean> lockingStatus = new HashMap<>();
 
     public static void initialFloorStatus(int floors){
@@ -21,12 +22,15 @@ public class Building {
             lockingStatus.put(i, false);
         }
     }
+    /** New: Used to check whether a floor is locked*/
     public static boolean isFloorLocked(int floor){
         return lockingStatus.get(floor);
     }
+    /** New: Used to lock a floor */
     public static void lockFloor(int floor){
         lockingStatus.put(floor, true);
     }
+    /** New: Used to release a floor*/
     public static void releaseFloor(int floor){
         lockingStatus.put(floor, false);
     }

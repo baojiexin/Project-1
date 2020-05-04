@@ -27,12 +27,15 @@ public class Robot implements IMailHandling{
     private IMailPool mailPool;
     private boolean receivedDispatch;
 
+    /** New: MailItems on robot*/
     private MailItem deliveryItem = null;
     private MailItem tube = null;
-    private MailItem fragileItem = null;/** The fragile item on the special arm*/
+    private MailItem fragileItem = null;
     private MailItem normalItem = null;
+
     private int deliveryCounter;
 
+    /** New: Time for wrapping and unwrapping*/
     private int wrapTime = 0;
     private int unwrapTime = 0;
 
@@ -87,6 +90,7 @@ public class Robot implements IMailHandling{
     		case WAITING:
                 /** If the StorageTube is ready and the Robot is waiting in the mailroom then start the delivery */
                 if(!isEmpty() && receivedDispatch){
+                    /** New: Wrapping Fragile item cost 2 units of time*/
                     if(deliveryItem.isFragile()){
                         if(wrapTime >= 2){
                             receivedDispatch = false;
@@ -96,6 +100,7 @@ public class Robot implements IMailHandling{
                             changeState(RobotState.DELIVERING);
                         }
                         else {
+                            /** New: Wrapping Fragile item before delivery*/
                             wrap();
                             System.out.println(this.id + " is wrapping fragile item: " + deliveryItem.toString());
                         }
@@ -113,10 +118,13 @@ public class Robot implements IMailHandling{
     		case DELIVERING:
     			if(current_floor == destination_floor){ // If already here drop off either way
                     /** Delivery complete, report this to the simulator! */
+                    /** New: Wrapping Fragile item before delivery*/
                     if(deliveryItem.isFragile()){
                         assert (RobotMode.isCautionOn());
+                        /** New: Unwrapping Fragile item before delivery costs 1 unit of time*/
                         if(unwrapTime >= 1){
                             delivery.deliver(deliveryItem);
+
                             deliveryItem = null;
                             unwrapTime = 0;
                             deliveryCounter++;
@@ -133,16 +141,20 @@ public class Robot implements IMailHandling{
                                 setRoute();
                                 changeState(RobotState.DELIVERING);
                             }
+                            /** New: Release the floor*/
                             Building.releaseFloor(current_floor);
                             System.out.println(this.id + "released floor " + current_floor);
                         }
                         else {
+                            /** New: Unwrapping fragile items*/
                             unwrap();
+                            /** New: Locking the floor*/
                             Building.lockFloor(current_floor);
                             System.out.println(this.id + " is unwrapping fragile item: " + deliveryItem.toString());
                         }
                     }
                     else {
+                        /** New: Deliver normal item*/
                         delivery.deliver(deliveryItem);
                         deliveryItem = null;
                         deliveryCounter++;
@@ -186,12 +198,13 @@ public class Robot implements IMailHandling{
     private void setRoute() {
         /** Set the destination floor */
         //System.out.println("Tube空吗: " + tubeEmpty() + " Normal空吗: " + normalHandEmpty() + " Fragile空吗: " + specialHandEmpty());
-        System.out.println("发送物品的ID是 ：" + deliveryItem.id + "是否为脆弱： " + deliveryItem.fragile);
+        //System.out.println("发送物品的ID是 ：" + deliveryItem.id + "是否为脆弱： " + deliveryItem.fragile);
         destination_floor = deliveryItem.getDestFloor();
     }
 
     /**
      * Generic function that moves the robot towards the destination
+     * New: Check locking status to decide whether to wait or move
      * @param destination the floor towards which the robot is moving
      */
     private void moveTowards(int destination) {
@@ -253,6 +266,8 @@ public class Robot implements IMailHandling{
     public void addDeliveryItem(MailItem mailItem){
         this.deliveryItem = mailItem;
     }
+
+    /** New: Update items on robot at the start or after a delivery*/
     public void updateDeliveryItem(){
 	    assert (deliveryItem ==null);
 	    if(normalItem !=null && fragileItem != null){
@@ -325,18 +340,13 @@ public class Robot implements IMailHandling{
     @Override
     public void wrap() {
         wrapTime++;
+        Simulation.addCautionTime();
 
     }
     public void unwrap(){
         unwrapTime++;
+        Simulation.addCautionTime();
     }
 
-    public MailItem getClosestItem(MailItem item_1, MailItem item_2){
 
-        if(Math.abs(item_1.destination_floor - current_floor) >=
-                Math.abs(item_2.destination_floor - current_floor)){
-            return item_1;
-        }
-        else return item_2;
-    }
 }

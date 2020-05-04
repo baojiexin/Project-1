@@ -68,7 +68,7 @@ public class MailPool implements IMailPool {
 	private void loadRobot(ListIterator<Robot> i) throws ItemTooHeavyException, BreakingFragileItemException, NormalItemOnFragileArmException {
 		Robot robot = i.next();
 		assert(robot.isEmpty());
-		System.out.printf("目前pool有多少个 " + "P: %3d%n", pool.size());
+//		System.out.printf("目前pool有多少个 " + "P: %3d%n", pool.size());
 		ListIterator<Item> j = pool.listIterator();
 		if(RobotMode.isCautionOn()){
 			/**
@@ -110,54 +110,7 @@ public class MailPool implements IMailPool {
 				robot.dispatch();
 				i.remove();
 			}
-//			if (pool.size() > 0) {
-//				try {
-//					MailItem currentItem = j.next().mailItem;
-//					if(currentItem.isFragile()){
-//						assert(robot.specialHandEmpty());
-//						robot.addToFragile(currentItem);
-//
-//					}
-//					else {
-//						robot.addToHand(currentItem);
-//					}
-//					j.remove();
-//					if (pool.size() > 0) {
-//						currentItem = j.next().mailItem;
-//						if(!currentItem.isFragile()){
-//							if(robot.normalHandEmpty()){
-//								robot.addToHand(currentItem);
-//							}
-//							else {
-//								robot.addToTube(currentItem);
-//							}
-//
-//						}
-//						else {
-//							if (robot.specialHandEmpty()){
-//								robot.addToFragile(currentItem);
-//							}
-//						}
-//						j.remove();
-//						if(pool.size() > 0){
-//							currentItem = j.next().mailItem;
-//							if(currentItem.isFragile()){
-//								assert (robot.specialHandEmpty());
-//								robot.addToFragile(currentItem);
-//								j.remove();
-//							}
-//							else if(robot.tubeEmpty()){
-//								robot.addToTube(currentItem);
-//								j.remove();
-//							}
-//						}
-//					}
-//					robot.dispatch(); // send the robot off if it has any items to deliver
-//					i.remove();       // remove from mailPool queue
-//				} catch (Exception e) {
-//					throw e;
-//				}
-//			}
+
 		}
 		/**
 		 * Load a robot in a normal mode

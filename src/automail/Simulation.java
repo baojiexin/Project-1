@@ -27,6 +27,11 @@ public class Simulation {
     
     private static ArrayList<MailItem> MAIL_DELIVERED;
     private static double total_score = 0;
+    private static int normal_delivery_number = 0;
+    private static int caution_delivery_number = 0;
+    private static int normal_delivery_weight = 0;
+    private static int caution_delivery_weight = 0;
+    private static int caution_time = 0;
 
     public static void main(String[] args) throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException {
     	Properties automailProperties = new Properties();
@@ -81,6 +86,7 @@ public class Simulation {
 		// MailPool
 		IMailPool mailPool = new MailPool(robots);
 		RobotMode.changeCaution(CAUTION_ENABLED);
+		System.out.println("Is Caution mode on? :" + CAUTION_ENABLED);
 
 		// End properties
 		
@@ -141,6 +147,15 @@ public class Simulation {
                 System.out.printf("T: %3d > Deliv(%4d) [%s]%n", Clock.Time(), MAIL_DELIVERED.size(), deliveryItem.toString());
     			// Calculate delivery score
     			total_score += calculateDeliveryScore(deliveryItem);
+    			if(deliveryItem.isFragile()){
+    				caution_delivery_number += 1;
+    				caution_delivery_weight += deliveryItem.getWeight();
+				}
+    			else {
+    				normal_delivery_number += 1;
+    				normal_delivery_weight += deliveryItem.getWeight();
+				}
+
     		}
     		else{
     			try {
@@ -160,11 +175,19 @@ public class Simulation {
     	double priority_weight = 0;
         return Math.pow(Clock.Time() - deliveryItem.getArrivalTime(),penalty)*(1+Math.sqrt(priority_weight));
     }
+    public static void addCautionTime(){
+    	caution_time++;
+	}
 
     public static void printResults(){
         System.out.println("T: "+Clock.Time()+" | Simulation complete!");
         System.out.println("Final Delivery time: "+Clock.Time());
         System.out.printf("Final Score: %.2f%n", total_score);
+		System.out.println("The number of packages delivered normally: " + normal_delivery_number);
+		System.out.println("The total weight of packages delivered normally: " + normal_delivery_weight);
+		System.out.println("The number of packages delivered using caution: " + caution_delivery_number);
+		System.out.println("The total weight of packages using caution: " + caution_delivery_weight);
+		System.out.println("The total amount of time spent by the special arms wrapping & unwrapping items: " + caution_time);
     }
 
 }
